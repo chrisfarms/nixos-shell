@@ -48,8 +48,8 @@ var cmd = &Cmd{}
 
 // Cmd encapsulates the command and it's options.
 type Cmd struct {
-	Config  string   `short:"C" long:"config" description:"path to configuration.nix" default:"$PWD/configuration.nix"`
-	Bind    string   `short:"b" long:"bind" description:"path on host to bind to /app in the container" default:"$PWD"`
+	Config  string   `short:"C" long:"config" description:"path to configuration.nix" default:"./configuration.nix"`
+	Bind    string   `short:"b" long:"bind" description:"path on host to bind to /app in the container" default:"./"`
 	Command string   `short:"c" long:"command" description:"shell commands to execute"`
 	Id      string   `long:"name" description:"name to use for the container" default:"random"`
 	Verbose bool     `short:"v" description:"show verbose logging"`
@@ -102,7 +102,21 @@ func (cmd *Cmd) Create(confpath string) (keyPath string, err error) {
 		users.extraUsers.root = {
 			openssh.authorizedKeys.keyFiles = [ %s ];
 		};
-	`, confpath, pub)
+		programs.bash.promptInit =
+			''
+			IP=$(ip -4 -o addr show dev eth0 | awk '{split($4,a,"/");print a[1]}')
+			PROMPT_COLOR="1;31m"
+			let $UID && PROMPT_COLOR="1;32m"
+			PS1="\n\[\033[$PROMPT_COLOR\][$IP:\w]\\$\[\033[0m\] "
+			if test "$TERM" = "xterm"; then
+				PS1="\[\033]2;$IP:\w\007\]$PS1"
+			fi
+			'';
+		environment.loginShellInit =
+			''
+			cd /src
+			'';
+	`, confpath, pub, )
 	err = cmd.container(false, "create", cmd.Id, "--config", module)
 	if err != nil {
 		return "", err

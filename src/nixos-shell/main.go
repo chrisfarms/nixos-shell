@@ -545,9 +545,13 @@ func RunCommand() (err error) {
 
 // You can guess this one
 func main() {
+	fmt.Printf("Starting environment...\n")
 	err := RunCommand()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
+		if !cmd.Verbose {
+			fmt.Fprintf(os.Stderr, "Run with -v to see full output\n")
+		}
 		os.Exit(1)
 	}
 }

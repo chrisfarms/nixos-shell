@@ -50,6 +50,18 @@ $ cd nixos-shell
 $ nix-env -i -f default.nix
 ```
 
+If you want your containers to be able to connect to the internet you will need
+to setup NAT on your host by adding something like the following to your
+config:
+
+```
+networking.nat = {
+	enable = true;
+	externalInterface = "eth0";
+	internalInterfaces = [ "ve-+" ];                                                                                            
+};
+```
+
 FAQ
 ---
 

@@ -9,10 +9,11 @@ It fits somewhere between `nix-shell` and `nixos-rebuild build-vm`.
 Why
 ---
 
-It solves the same problem as things like virtualenv, 
-RVM and to a certain extent Docker: The issue of quickly
+It solves the same problem as things like [virtualenv](http://virtualenv.readthedocs.org/en/latest/virtualenv.html), 
+[RVM](http://rvm.io/) and tools like [Vagrant](https://www.vagrantup.com/): The issue of quickly
 being able to enter an environment with all the
-dependecies you need for working on your application.
+dependecies you need for working on your application without
+polluting your environment.
 
 How
 ---
@@ -24,7 +25,7 @@ application you navigate to your project and boot a container:
 ```
 $ cd my-awesome-project
 $ sudo nixos-shell
-[root@10.0.2.12]$ echo "I'm in a container"
+[10.0.2.12:/src]$ echo "I'm in a container"
 ```
 
 A container is built as defined in your project's `configuration.nix`,
@@ -32,7 +33,12 @@ spawned, and you are logged in via SSH. The container has a
 private networking namespace so you can start multiple containers
 with clashing ports.
 
-You can access things running in the container from the advertised IP.
+You can access things running in the container from the host via
+the ip address advertised in the bash prompt.
+
+Your application dir (the path on the host where you ran `nixos-shell`) 
+is bind mounted to `/src` inside the container. This is analgous to
+the `/vagrant` [synced folder in vagrant](https://docs.vagrantup.com/v2/synced-folders/index.html).
 
 
 Install
@@ -41,11 +47,14 @@ Install
 ```
 $ git clone https://github.com/chrisfarms/nixos-shell.git
 $ cd nixos-shell
-$ nix-env -f default.nix
+$ nix-env -i -f default.nix
 ```
 
 FAQ
 ---
+
+####What's a configuration.nix file
+See the [NixOS manual](http://nixos.org/nixos/manual/#ch-configuration).
 
 ####Isn't this just nix-shell?
 No. `nix-shell` will drop you into a chroot, with any required build
@@ -54,8 +63,10 @@ drop you into a *containter* which is closer to booting a virtual machine
 with everything you need.
 
 ####Isn't this just nixos-container?
-Not quite. `nixos-shell` is for spawning ephemeral `nixos-container`'s.
-That is, it sets up your container, gets you logged in, then takes care of
-tearing it up and tidying up after you when you log out.
+Not quite. `nixos-shell` builds on tops of `nixos-container` to spawn 
+a temporary environment. That is, it sets up your environment, gets you 
+logged in, then takes care of tearing it up and tidying up after you when 
+you log out.
+
 
 

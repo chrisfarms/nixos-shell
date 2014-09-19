@@ -49,7 +49,7 @@ var cmd = &Cmd{}
 // Cmd encapsulates the command and it's options.
 type Cmd struct {
 	Config  string   `short:"C" long:"config" description:"path to configuration.nix" default:"./configuration.nix"`
-	Bind    string   `short:"b" long:"bind" description:"path on host to bind to /app in the container" default:"./"`
+	Bind    string   `short:"b" long:"bind" description:"path on host to bind to /src in the container" default:"./"`
 	Command string   `short:"c" long:"command" description:"shell commands to execute"`
 	Id      string   `long:"name" description:"name to use for the container" default:"random"`
 	Verbose bool     `short:"v" description:"show verbose logging"`

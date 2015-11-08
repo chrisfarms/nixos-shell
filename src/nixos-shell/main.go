@@ -52,6 +52,7 @@ type Cmd struct {
 	Bind    string   `short:"b" long:"bind" description:"path on host to bind to /src in the container" default:"./"`
 	Command string   `short:"c" long:"command" description:"shell commands to execute"`
 	Id      string   `long:"name" description:"name to use for the container" default:"random"`
+	User    string   `long:"user" short:"u" description:"user to log in to the container as" default:"root"`
 	Verbose bool     `short:"v" description:"show verbose logging"`
 	Timeout int      `short:"t" description:"timeout in seconds to wait for container boot" default:"90"`
 	Ports   []string `short:"p" long:"port" description:"expose a container port to the host. example '8080:80' allows access to container port 80 via host port 8080"`
@@ -67,7 +68,7 @@ func (cmd *Cmd) debug(args ...interface{}) {
 }
 
 // Setup the container
-func (cmd *Cmd) Create(confpath string) (keyPath string, err error) {
+func (cmd *Cmd) Create(confpath string, user string) (keyPath string, err error) {
 	prv, pub, err := cmd.keygen()
 	if err != nil {
 		return "", err
@@ -99,7 +100,7 @@ func (cmd *Cmd) Create(confpath string) (keyPath string, err error) {
 				GSSAPIAuthentication no
 				'';
 		};
-		users.extraUsers.root = {
+		users.extraUsers.%s = {
 			openssh.authorizedKeys.keyFiles = [ %s ];
 		};
 		programs.bash.promptInit =
@@ -116,7 +117,7 @@ func (cmd *Cmd) Create(confpath string) (keyPath string, err error) {
 			''
 			cd /src
 			'';
-	`, confpath, pub, )
+	`, confpath, user, pub, )
 	err = cmd.container(false, "create", cmd.Id, "--config", module)
 	if err != nil {
 		return "", err
@@ -149,13 +150,14 @@ func (cmd *Cmd) Run(args ...string) error {
 }
 
 // Login as the current
-func (cmd *Cmd) Login(key string) error {
+func (cmd *Cmd) Login(key string, user string) error {
 	args := []string{
+		"-l", user,
 		"-i", key,
 		"-o", "StrictHostKeyChecking=no",
 		"-o", "UserKnownHostsFile=/dev/null",
 		"-o", "BatchMode=yes",
-		fmt.Sprintf("root@%s", cmd.netenv["LOCAL_ADDRESS"]),
+		fmt.Sprintf("%s@%s", user, cmd.netenv["LOCAL_ADDRESS"]),
 	}
 	return cmd.ssh(args...)
 }
@@ -467,7 +469,7 @@ func (cmd *Cmd) Execute() error {
 			fmt.Fprintf(os.Stderr, "failed to destroy container %s\n", cmd.Id)
 		}
 	}()
-	key, err := cmd.Create(confpath); 
+	key, err := cmd.Create(confpath, cmd.User);
 	if err != nil {
 		return err
 	}
@@ -512,7 +514,7 @@ func (cmd *Cmd) Execute() error {
 		args := strings.Fields(cmd.Command)
 		return cmd.Run(args...)
 	}
-	return cmd.Login(key)
+	return cmd.Login(key, cmd.User)
 }
 
 // catches SIGINT and forwards it to a channel so that

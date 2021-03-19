@@ -82,6 +82,3 @@ Not quite. `nixos-shell` builds on tops of `nixos-container` to spawn
 a temporary environment. That is, it sets up your environment, gets you 
 logged in, then takes care of tearing it up and tidying up after you when 
 you log out.
-
-
-

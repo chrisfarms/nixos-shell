@@ -65,16 +65,16 @@ networking.nat = {
 FAQ
 ---
 
-####What's a configuration.nix file
+#### What's a configuration.nix file
 See the [NixOS manual](http://nixos.org/nixos/manual/#ch-configuration).
 
-####Isn't this just nix-shell?
+#### Isn't this just nix-shell?
 No. `nix-shell` will drop you into a chroot, with any required build
 dependencies, but won't handle dependent *services*. `nixos-shell` will 
 drop you into a *containter* which is closer to booting a virtual machine
 with everything you need.
 
-####Isn't this just nixos-container?
+#### Isn't this just nixos-container?
 Not quite. `nixos-shell` builds on tops of `nixos-container` to spawn 
 a temporary environment. That is, it sets up your environment, gets you 
 logged in, then takes care of tearing it up and tidying up after you when 

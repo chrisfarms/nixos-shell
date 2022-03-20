@@ -2,29 +2,30 @@ package main
 
 import (
 	"crypto/rand"
+	"encoding/base32"
 	"fmt"
-	"github.com/jessevdk/go-flags"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"os/signal"
 	"path"
 	"path/filepath"
-	"strings"
 	"strconv"
-	"io/ioutil"
+	"strings"
 	"syscall"
 	"time"
-	"encoding/base32"
+
+	"github.com/jessevdk/go-flags"
 )
 
 // Generate a random id for the container name.
 // This name can't be too long as it is used as
-// an interface name as well which will explode if 
+// an interface name as well which will explode if
 // is larger than 6 bytes for some reason.
 // Clashes are possible here so this checks against
 // known container names to ensure it's unique
 func randomName() (string, error) {
-	for i := 0; i<25; i++ {
+	for i := 0; i < 25; i++ {
 		b := make([]byte, 6)
 		_, err := rand.Read(b)
 		if err != nil {
@@ -56,7 +57,7 @@ type Cmd struct {
 	Timeout int      `short:"t" description:"timeout in seconds to wait for container boot" default:"90"`
 	Ports   []string `short:"p" long:"port" description:"expose a container port to the host. example '8080:80' allows access to container port 80 via host port 8080"`
 	sigint  chan bool
-	netenv map[string]string
+	netenv  map[string]string
 }
 
 // logging
@@ -116,7 +117,7 @@ func (cmd *Cmd) Create(confpath string) (keyPath string, err error) {
 			''
 			cd /src
 			'';
-	`, confpath, pub, )
+	`, confpath, pub)
 	err = cmd.container(false, "create", cmd.Id, "--config", module)
 	if err != nil {
 		return "", err
@@ -192,7 +193,7 @@ func (cmd *Cmd) keygen() (private string, public string, err error) {
 		return
 	}
 	keyPath := path.Join(home, "id_rsa")
-	args := []string{ "-t", "rsa", "-N", "", "-f",  keyPath }
+	args := []string{"-t", "rsa", "-N", "", "-f", keyPath}
 	cmd.debug(exe, args)
 	c := exec.Command(exe, args...)
 	if cmd.Verbose {
@@ -204,7 +205,7 @@ func (cmd *Cmd) keygen() (private string, public string, err error) {
 	if err != nil {
 		return
 	}
-	return keyPath, keyPath+".pub", nil
+	return keyPath, keyPath + ".pub", nil
 }
 
 // wrapper around ssh
@@ -467,7 +468,7 @@ func (cmd *Cmd) Execute() error {
 			fmt.Fprintf(os.Stderr, "failed to destroy container %s\n", cmd.Id)
 		}
 	}()
-	key, err := cmd.Create(confpath); 
+	key, err := cmd.Create(confpath)
 	if err != nil {
 		return err
 	}
